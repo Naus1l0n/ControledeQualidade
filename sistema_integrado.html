@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle Integrado</title>
+    <style>
+        /* CSS COMPLETO (QUALIDADE + TEMPERATURA) */
+        :root {
+            --cor-primaria: #004080; 
+            --cor-secundaria: #4e8df5; 
+            --cor-fundo: #f8f9fa;      
+            --cor-texto: #343a40;      
+            --cor-texto-claro: white;
+            --cor-borda: #dee2e6;      
+            --cor-sucesso: #28a745;   
+            --cor-erro: #dc3545;       
+            --cor-aviso: #ffc107;      
+            --cor-info: #17a2b8;       
+            --cor-ia: #8e44ad; /* Cor para a seção de IA */
+
+            --cor-sucesso-fundo: #d4edda;
+            --cor-sucesso-texto: #155724;
+            --cor-sucesso-borda: #c3e6cb;
+            --cor-erro-fundo: #f8d7da;
+            --cor-erro-texto: #721c24;
+            --cor-erro-borda: #f5c6cb;
+            --cor-aviso-fundo: #fff3cd;
+            --cor-aviso-texto: #856404;
+            --cor-aviso-borda: #ffeeba;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+            color: var(--cor-texto-claro);
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 2em; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: var(--cor-primaria);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        nav a {
+            color: var(--cor-texto-claro);
+            padding: 14px 20px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        nav a:hover, nav a.active {
+            background-color: var(--cor-secundaria);
+        }
+
+        main {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; 
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin: 0; 
+            width: 95%;
+            max-width: 1200px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            border-top: 4px solid var(--cor-primaria);
+        }
+
+        h2 {
+            color: var(--cor-primaria);
+            border-bottom: 2px solid var(--cor-fundo);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h3 {
+            color: var(--cor-secundaria);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: auto;
+            font-size: 0.95em; 
+        }
+        table, th, td {
+            border: 1px solid var(--cor-borda);
+            word-wrap: break-word;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top; 
+        }
+        th {
+            background-color: var(--cor-primaria);
+            color: var(--cor-texto-claro);
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa; 
+        }
+        
+        .button, .add-button, .action-button {
+            display: inline-block; padding: 10px 18px; margin: 5px; background-color: var(--cor-primaria); color: var(--cor-texto-claro);
+            text-decoration: none; border-radius: 5px; text-align: center; border: none; cursor: pointer; font-size: 0.95em;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button:hover, .add-button:hover, .action-button:hover {
+            background-color: var(--cor-secundaria); box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .action-button.edit { background-color: var(--cor-aviso); color: #333; }
+        .action-button.view { background-color: var(--cor-info); }
+        .action-button.edit:hover { background-color: #e0a800; }
+        .action-button.view:hover { background-color: #138496; }
+
+        footer {
+            background-color: #343a40; color: #adb5bd; text-align: center;
+            padding: 15px; margin-top: 40px; font-size: 0.9em;
+        }
+        footer p { margin: 5px 0 0;}
+
+        form {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px 20px; width: 100%; margin: 20px auto 0; 
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        label { margin-bottom: 5px; font-weight: 600; color: #555; }
+        input, select, textarea {
+            padding: 10px 12px; border: 1px solid var(--cor-borda); border-radius: 4px;
+            font-size: 1rem; box-sizing: border-box; width: 100%; transition: border-color 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--cor-secundaria); outline: none; box-shadow: 0 0 0 2px rgba(78, 141, 245, 0.25);
+        }
+        input[type="submit"], .button.primary {
+            background-color: var(--cor-primaria); color: var(--cor-texto-claro); border: none; cursor: pointer;
+            padding: 12px 20px; width: auto; justify-self: start; 
+        }
+        input[type="submit"]:hover, .button.primary:hover { background-color: var(--cor-secundaria); }
+        input:read-only:disabled { background-color: #e9ecef; cursor: not-allowed; }
+        input[type="submit"]:disabled, .button:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
+
+        #message-area-notifications {
+            padding: 12px 18px; margin: 0 auto 20px auto; width: 95%; max-width: 1200px;
+            text-align: center; border-radius: 5px; border: 1px solid transparent;
+            box-sizing: border-box; font-weight: 500;
+        }
+        .message.success { background-color: var(--cor-sucesso-fundo); color: var(--cor-sucesso-texto); border-color: var(--cor-sucesso-borda); }
+        .message.error { background-color: var(--cor-erro-fundo); color: var(--cor-erro-texto); border-color: var(--cor-erro-borda); }
+        .message.info { background-color: #cfe2ff; color: #084298; border-color: #b6d4fe; }  
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); animation: fadeIn 0.3s ease-out; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px 30px; border: 1px solid #888; width: 85%; max-width: 750px; border-radius: 8px; position: relative; animation: slideIn 0.4s ease-out; }
+        .close-button { color: #aaa; float: right; font-size: 32px; font-weight: bold; position: absolute; top: 10px; right: 20px; line-height: 1; }
+        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
+        
+        /* Estilos específicos */
+        #tabela-registros td:nth-child(8) { font-weight: bold; }
+        #acaoCorretivaForm { grid-template-columns: 1fr; }
+        #acaoCorretivaForm .form-group-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 20px; }
+        #relatorios-card { border-top-color: var(--cor-sucesso); } 
+        .report-section { margin-bottom: 30px; padding: 15px; background-color: #fdfdfd; border: 1px solid #eee; border-radius: 5px; }
+        .report-summary strong { color: var(--cor-primaria); }
+        .report-table th { background-color: var(--cor-secundaria); }
+        .overdue { color: var(--cor-erro); font-weight: bold; }
+
+        /* Estilos para o Dashboard de Temperatura */
+        #dashboard-card { border-top-color: var(--cor-aviso); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+        .dashboard-item { padding: 15px; border-radius: 5px; color: var(--cor-texto-claro); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .dashboard-item h4 { margin: 0 0 10px 0; font-size: 1.1em; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 8px; }
+        .dashboard-item p { margin: 4px 0; font-size: 1em; }
+        .dashboard-item .temp-reading { font-size: 1.8em; font-weight: bold; text-align: right; }
+        .dashboard-item .timestamp { font-size: 0.8em; opacity: 0.9; text-align: right; }
+        .status-ok { background: linear-gradient(135deg, #2a9d8f, #264653); }
+        .status-alerta { background: linear-gradient(135deg, #e76f51, #f4a261); animation: pulse 2s infinite; }
+        .status-sem-dados { background: linear-gradient(135deg, #6c757d, #343a40); }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 111, 81, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 111, 81, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 111, 81, 0); }
+        }
+
+        /* Estilos para o Card de Informações */
+        #info-card { border-top-color: var(--cor-info); }
+        .info-content ul { list-style-position: inside; padding-left: 10px; }
+        .info-content li { margin-bottom: 8px; }
+
+        /* Estilos para a Tabela de Temperatura */
+        .status-cell-ok { background-color: var(--cor-sucesso-fundo); color: var(--cor-sucesso-texto); font-weight: bold; text-align: center; }
+        .status-cell-alerta { background-color: var(--cor-erro-fundo); color: var(--cor-erro-texto); font-weight: bold; text-align: center; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        @media screen and (max-width: 992px) {
+            #tabela-registros thead, #tabela-temperatura thead { display: none; }
+            #tabela-registros tr, #tabela-temperatura tr { display: block; margin-bottom: 15px; border-radius: 5px; border: 1px solid var(--cor-borda); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+            #tabela-registros td, #tabela-temperatura td { display: block; text-align: right; border: none; border-bottom: 1px dotted var(--cor-borda); position: relative; padding-left: 50%; }
+            #tabela-registros tr td:last-child, #tabela-temperatura tr td:last-child { border-bottom: none; }
+            #tabela-registros td::before, #tabela-temperatura td::before {
+                content: attr(data-label); position: absolute; left: 10px; width: 45%; padding-right: 10px;
+                white-space: nowrap; text-align: left; font-weight: bold; color: var(--cor-primaria);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sistema de Controle Integrado</h1>
+    </header>
+    <nav id="main-nav">
+        <a data-section="qualidade" class="active">Controle de Qualidade</a>
+        <a data-section="temperatura">Controle de Temperatura</a>
+        <a data-section="ia">Assistente de IA</a>
+    </nav>
+
+    <main>
+        <div id="message-area-notifications" style="display: none;"></div>
+        
+        <div id="secao-qualidade" style="display: none;">
+            <nav id="qualidade-nav" style="background-color: #f8f9fa; justify-content: flex-start; box-shadow: none; border-bottom: 2px solid var(--cor-borda); margin-bottom: 20px;">
+                <a href="#" data-card="resumo-card" class="sub-nav-link active" style="color: var(--cor-primaria); background-color: white;">Inspeções</a>
+                <a href="#" data-card="formulario-card" class="sub-nav-link" style="color: var(--cor-primaria); background-color: white;">Nova Inspeção</a>
+                <a href="#" data-card="relatorios-card" class="sub-nav-link" style="color: var(--cor-primaria); background-color: white;">Relatórios</a>
+            </nav>
+
+            <div class="card" id="resumo-card">
+                <h2>Resumo e Registros de Inspeções</h2>
+                <div id="resumo" aria-live="polite"><p>Carregando dados...</p></div>
+                <div class="form-group" style="max-width: 500px; margin: 20px 0;">
+                    <label for="filtro-tabela">Buscar Inspeções:</label>
+                    <input type="text" id="filtro-tabela" placeholder="Digite para buscar...">
+                </div>
+                <table id="tabela-registros">
+                    <thead><tr><th>ID</th><th>Data Insp.</th><th>Produto</th><th>Lote</th><th>Validade</th><th>Fornecedor</th><th>Responsável</th><th>Status</th><th>Observações</th><th>Ações</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="card" id="formulario-card" style="display: none;">
+                <h2>Novo Registro de Inspeção de Qualidade</h2>
+                <form id="registroForm">
+                    <div class="form-group"><label for="data">Data da Inspeção:</label><input type="date" id="data" name="data" required></div>
+                    <div class="form-group"><label for="produto">Produto:</label><input type="text" id="produto" name="produto" list="produtos-list" required><datalist id="produtos-list"><option value="Dipirona Gotas 20ml"><option value="Amoxicilina 500mg Comp."></datalist></div>
+                    <div class="form-group"><label for="lote">Número do Lote:</label><input type="text" id="lote" name="lote" required></div>
+                    <div class="form-group"><label for="validade">Data de Validade:</label><input type="date" id="validade" name="validade" required></div>
+                    <div class="form-group"><label for="fornecedor">Fornecedor:</label><input type="text" id="fornecedor" name="fornecedor" list="fornecedores-list"><datalist id="fornecedores-list"><option value="MCW."><option value="Dimeva"></datalist></div>
+                    <div class="form-group"><label for="responsavel">Responsável pela Inspeção:</label><input type="text" id="responsavel" name="responsavel" required></div>
+                    <div class="form-group"><label for="status">Status da Inspeção:</label><select id="status" name="status" required><option value="Conforme">Conforme</option><option value="Não Conforme">Não Conforme</option></select></div>
+                    <div class="form-group full-width"><label for="observacoes">Observações:</label><textarea id="observacoes" name="observacoes" rows="3" required></textarea></div>
+                    <div class="form-group full-width"><input type="submit" value="Salvar Inspeção"></div>
+                </form>
+            </div>
+
+            <div class="card" id="relatorios-card" style="display: none;">
+                <h2>Relatórios de Qualidade</h2>
+                <button id="generateReportBtn" class="button primary">Gerar/Atualizar Relatórios</button>
+                <div id="report-content" style="margin-top: 20px;"><p>Clique no botão para gerar os relatórios.</p></div>
+            </div>
+        </div>
+
+        <div id="secao-temperatura" style="display: none;">
+            <div class="card" id="dashboard-card">
+                <h2>Dashboard de Temperatura</h2>
+                <div id="dashboard-content" class="dashboard-grid"><p>Carregando status...</p></div>
+            </div>
+            <div class="card" id="info-card">
+                <h2>Princípios do Controle de Temperatura de Termolábeis</h2>
+                <div class="info-content">
+                    <p>O controle de temperatura é vital para garantir a eficácia e segurança de produtos termolábeis.</p>
+                    <h4>Faixas Padrão de Armazenamento:</h4>
+                    <ul>
+                        <li><strong>Refrigerado (Geladeira/Câmara Fria):</strong> <strong>2°C a 8°C</strong>.</li>
+                        <li><strong>Ambiente Climatizado:</strong> <strong>15°C a 25°C</strong>.</li>
+                        <li><strong>Congelado (Freezer):</strong> <strong>-25°C a -15°C</strong>.</li>
+                    </ul>
+                    <p>Qualquer desvio (excursão de temperatura) deve ser documentado e uma ação corretiva iniciada.</p>
+                </div>
+            </div>
+            <div class="card" id="registro-temperatura-card">
+                <h2>Novo Registro de Temperatura e Umidade</h2>
+                <form id="temperaturaForm">
+                     <div class="form-group"><label for="equipamento">Equipamento / Área:</label><select id="equipamento" name="equipamento" required><option value="">-- Selecione --</option><option value="Geladeira 01">Geladeira 01 (2°C a 8°C)</option><option value="Câmara Fria A">Câmara Fria A (2°C a 8°C)</option><option value="Freezer -20°C">Freezer -20°C (-25°C a -15°C)</option><option value="Estoque Climatizado">Estoque Climatizado (15°C a 25°C)</option></select></div>
+                     <div class="form-group"><label for="temperatura">Temperatura Medida (°C):</label><input type="number" step="0.1" id="temperatura" name="temperatura" placeholder="Ex: 4.5" required></div>
+                     <div class="form-group"><label for="umidade">Umidade Relativa Medida (%):</label><input type="number" step="1" id="umidade" name="umidade" placeholder="Ex: 55 (Opcional)"></div>
+                     <div class="form-group"><label for="responsavelTemp">Responsável:</label><input type="text" id="responsavelTemp" name="responsavelTemp" required></div>
+                     <div class="form-group full-width"><label for="obsTemp">Observações:</label><textarea id="obsTemp" name="obsTemp" rows="2"></textarea></div>
+                     <div class="form-group full-width"><input type="submit" value="Salvar Registro"></div>
+                </form>
+            </div>
+            <div class="card" id="historico-card">
+                <h2>Histórico de Registros de Temperatura</h2>
+                <table id="tabela-temperatura">
+                    <thead><tr><th>Data e Hora</th><th>Equipamento/Área</th><th>Temp. (°C)</th><th>Umidade (%)</th><th>Status</th><th>Responsável</th><th>Observações</th></tr></thead>
+                    <tbody id="tabela-temperatura-body"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="secao-ia" style="display: none;">
+             <div class="card" id="ia-card" style="border-top-color: var(--cor-ia);">
+                <h2>Assistente de IA</h2>
+                <p>Faça uma pergunta ou peça ajuda para analisar dados. A IA tem acesso aos dados de inspeções e pode ajudar a identificar tendências ou causas-raiz.</p>
+                <div class="form-group full-width">
+                    <label for="ia-prompt">Sua pergunta:</label>
+                    <textarea id="ia-prompt" rows="4" placeholder="Ex: Qual a causa raiz mais comum para não conformidades em inspeções de produtos farmacêuticos?"></textarea>
+                </div>
+                <div class="form-group">
+                    <button id="ask-ia-btn" class="button" style="background-color: var(--cor-ia);">Enviar para IA</button>
+                </div>
+                <div id="ia-response" style="margin-top: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; display: none;">
+                    <h4>Resposta da IA:</h4>
+                    <p id="ia-response-text" style="white-space: pre-wrap; line-height: 1.6;">Aguardando...</p>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="acaoCorretivaModal" class="modal">
+            </div>
+
+    </main>
+    <footer>
+        &copy; <span id="currentYear"></span> Sistema de Controle Integrado.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ===================================================================
+            // INÍCIO: LÓGICA DE NAVEGAÇÃO PRINCIPAL E SEÇÕES
+            // ===================================================================
+
+            const mainNavLinks = document.querySelectorAll('#main-nav a');
+            const secoes = document.querySelectorAll('#secao-qualidade, #secao-temperatura, #secao-ia');
+            const qualidadeNavLinks = document.querySelectorAll('#qualidade-nav a');
+            const qualidadeCards = document.querySelectorAll('#secao-qualidade .card');
+
+            function showMainSection(sectionName) {
+                secoes.forEach(secao => {
+                    secao.style.display = secao.id === `secao-${sectionName}` ? 'block' : 'none';
+                });
+                mainNavLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.section === sectionName);
+                });
+            }
+
+            function showQualidadeCard(cardId) {
+                qualidadeCards.forEach(card => {
+                    card.style.display = card.id === cardId ? 'block' : 'none';
+                });
+                qualidadeNavLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.card === cardId);
+                    link.style.backgroundColor = link.classList.contains('active') ? '#e9ecef' : 'white';
+                });
+            }
+            
+            mainNavLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showMainSection(link.dataset.section);
+                });
+            });
+
+            qualidadeNavLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showQualidadeCard(link.dataset.card);
+                });
+            });
+
+            // ===================================================================
+            // INÍCIO: CÓDIGO DO CONTROLE DE QUALIDADE (EXISTENTE)
+            // ===================================================================
+            const mockQualidade = {
+                registros: [{ id: 1, data: '2025-05-01', produto: 'Dipirona Gotas 20ml', lote: 'LOTE001', validade: '2027-04-30', fornecedor: 'Medquimica', responsavel: 'Ana', status: 'Conforme', observacoes: 'Rotina.' }],
+                acoesCorretivas: [], proximoIdRegistro: 2, proximoIdAC: 1
+            };
+            let registrosQualidade = JSON.parse(localStorage.getItem('registrosQualidade')) || mockQualidade.registros;
+            let acoesCorretivasQualidade = JSON.parse(localStorage.getItem('acoesCorretivasQualidade')) || mockQualidade.acoesCorretivas;
+            let proximoIdRegistroQualidade = parseInt(localStorage.getItem('proximoIdRegistroQualidade')) || mockQualidade.proximoIdRegistro;
+            let proximoIdACQualidade = parseInt(localStorage.getItem('proximoIdACQualidade')) || mockQualidade.proximoIdAC;
+            
+            // Suas funções de qualidade (salvarDadosQualidade, fetchAndRenderRegistrosQualidade, etc.) continuam aqui...
+            // O código foi omitido para focar na adição da IA, mas deve ser mantido no seu arquivo.
+
+
+            // ===================================================================
+            // INÍCIO: CÓDIGO DO CONTROLE DE TEMPERATURA (EXISTENTE)
+            // ===================================================================
+            // Suas variáveis e funções de temperatura (faixasDeTemperatura, renderizarTabelaTemperatura, etc.) continuam aqui...
+            // O código foi omitido para focar na adição da IA, mas deve ser mantido no seu arquivo.
+
+
+            // ===================================================================
+            // INÍCIO: CÓDIGO DO ASSISTENTE DE IA (NOVO)
+            // ===================================================================
+
+            const apiKey = "AIzaSyAVcilvlR4fTTEVguJJeRbRTSpn8bGrHhc"; // SUA CHAVE DE API
+            const askIAButton = document.getElementById('ask-ia-btn');
+            const iaPromptTextarea = document.getElementById('ia-prompt');
+            const iaResponseDiv = document.getElementById('ia-response');
+            const iaResponseText = document.getElementById('ia-response-text');
+
+            /**
+             * ATENÇÃO: AVISO DE SEGURANÇA
+             * Armazenar a chave de API diretamente no código do lado do cliente (frontend)
+             * é ALTAMENTE INSEGURO e não é recomendado para aplicações em produção.
+             * Um invasor poderia facilmente encontrar e roubar sua chave, gerando custos.
+             *
+             * O ideal é que as chamadas para a API da IA sejam feitas a partir de um
+             * servidor (backend), que mantém a chave segura.
+             *
+             * Este exemplo é apenas para fins didáticos e de demonstração local.
+            */
+
+            async function getAIResponse(prompt) {
+                // Exemplo usando a API do Google Gemini. A URL e o corpo da requisição
+                // podem precisar de adaptação dependendo do serviço de IA exato.
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+
+                iaResponseDiv.style.display = 'block';
+                iaResponseText.textContent = 'Pensando...';
+                askIAButton.disabled = true;
+                askIAButton.textContent = 'Aguarde...';
+
+                // Para um contexto mais rico, podemos enviar os dados atuais do sistema para a IA
+                const contextoDoSistema = `
+                    Contexto do Sistema de Qualidade:
+                    - Total de Inspeções: ${registrosQualidade.length}
+                    - Registros Recentes: ${JSON.stringify(registrosQualidade.slice(-5))}
+                `;
+                
+                const promptCompleto = `${contextoDoSistema}\n\nPergunta do Usuário: ${prompt}`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            "contents": [{ "parts": [{ "text": promptCompleto }] }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Erro na API: ${errorData.error.message}`);
+                    }
+
+                    const data = await response.json();
+                    if (data.candidates && data.candidates.length > 0) {
+                        const text = data.candidates[0].content.parts[0].text;
+                        iaResponseText.textContent = text; // Mostra a resposta
+                    } else {
+                        iaResponseText.textContent = "Não foi possível obter uma resposta da IA. A resposta recebida estava vazia.";
+                    }
+
+                } catch (error) {
+                    console.error("Erro ao chamar a API de IA:", error);
+                    iaResponseText.textContent = `Ocorreu um erro ao contatar a IA. Verifique o console do navegador (F12) para mais detalhes. (Mensagem: ${error.message})`;
+                } finally {
+                    askIAButton.disabled = false;
+                    askIAButton.textContent = 'Enviar para IA';
+                }
+            }
+
+            askIAButton.addEventListener('click', () => {
+                const prompt = iaPromptTextarea.value;
+                if (prompt.trim()) {
+                    getAIResponse(prompt);
+                } else {
+                    displayMessage('Por favor, digite uma pergunta para a IA.', 'error');
+                }
+            });
+
+            // ===================================================================
+            // FIM: CÓDIGO DO ASSISTENTE DE IA
+            // ===================================================================
+
+
+            // ===================================================================
+            // INÍCIO: FUNÇÕES GLOBAIS E INICIALIZAÇÃO
+            // ===================================================================
+            function displayMessage(message, type, duration = 4000) {
+                // ... (sua função de displayMessage existente)
+            }
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // --- Inicialização ---
+            showMainSection('qualidade');
+            showQualidadeCard('resumo-card');
+            // Suas funções de inicialização existentes (fetchAndRenderRegistrosQualidade, renderizarTabelaTemperatura, etc.)
+            // devem ser mantidas e chamadas aqui.
+        });
+    </script>
+</body>
+</html>

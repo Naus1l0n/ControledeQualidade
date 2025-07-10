@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle Integrado</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Sistema de Controle Integrado</h1>
+        <div class="header-user-info">
+            <span id="welcome-user"></span>
+            <button id="logout-btn" class="button-logout">Sair</button>
+        </div>
+    </header>
+    <nav id="main-nav">
+        <a href="#resumo-card" class="nav-link active" data-perfil="admin,funcionario">Inspeções</a>
+        <a href="#fornecedores-card" class="nav-link" data-perfil="admin">Fornecedores</a>
+        <a href="#pop-card" class="nav-link" data-perfil="admin,funcionario">POP</a>
+        <a href="#relatorios-card" class="nav-link" data-perfil="admin">Relatórios</a>
+    </nav>
+    <main>
+        <div id="message-area-notifications" style="display: none;"></div>
+
+        <div class="card" id="resumo-card" data-perfil="admin,funcionario">
+            <h2>Resumo e Registros de Inspeções</h2>
+            <div id="resumo" aria-live="polite"><p>Carregando dados...</p></div>
+            <div class="form-group" style="max-width: 500px; margin: 20px 0;">
+                <label for="filtro-tabela">Buscar Inspeções:</label>
+                <input type="text" id="filtro-tabela" placeholder="Digite para buscar...">
+            </div>
+            <table id="tabela-registros" aria-live="polite">
+                 <thead><tr><th>ID</th><th>Data Insp.</th><th>Produto</th><th>Lote</th><th>Validade</th><th>Fornecedor</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <button class="add-button" id="goto-add-inspection-btn" data-perfil="admin,funcionario">Nova Inspeção</button>
+        </div>
+
+        <div class="card" id="formulario-card" style="display: none;" data-perfil="admin,funcionario">
+             <h2>Novo Registro de Inspeção</h2>
+            <form id="registroForm">
+                 <div class="form-group"><label for="data">Data da Inspeção:</label><input type="date" id="data" name="data" required></div>
+                 <div class="form-group"><label for="produto">Produto:</label><input type="text" id="produto" name="produto" list="produtos-list" required><datalist id="produtos-list"><option value="Dipirona Gotas 20ml"></datalist></div>
+                 <div class="form-group"><label for="lote">Lote:</label><input type="text" id="lote" name="lote" required></div>
+                 <div class="form-group"><label for="validade">Validade:</label><input type="date" id="validade" name="validade" required></div>
+                 <div class="form-group"><label for="fornecedor">Fornecedor:</label><select id="fornecedor" name="fornecedor" required><option value="">Carregando...</option></select></div>
+                 <div class="form-group"><label for="responsavel">Responsável:</label><input type="text" id="responsavel" name="responsavel" required></div>
+                 <div class="form-group"><label for="status">Status:</label><select id="status" name="status" required><option value="Conforme">Conforme</option><option value="Não Conforme">Não Conforme</option></select></div>
+                 <div class="form-group full-width"><label for="observacoes">Observações:</label><textarea id="observacoes" name="observacoes" rows="3"></textarea></div>
+                 <div class="form-group full-width"><input type="submit" value="Salvar Inspeção"></div>
+            </form>
+        </div>
+
+        <div class="card" id="fornecedores-card" style="display: none;" data-perfil="admin">
+            <h2>Cadastro de Fornecedores</h2>
+            <form id="fornecedorForm" style="margin-bottom: 30px;">
+                <h3>Novo Fornecedor</h3>
+                <div class="form-group"><label for="fornecedorNome">Nome:</label><input type="text" id="fornecedorNome" name="fornecedorNome" required></div>
+                <div class="form-group"><label for="fornecedorTipo">Tipo:</label><select id="fornecedorTipo" name="fornecedorTipo" required><option value="Fornecedor">Fornecedor</option><option value="Transportadora">Transportadora</option></select></div>
+                <div class="form-group full-width"><label for="fornecedorDoc">Documentos (PDF):</label><input type="file" id="fornecedorDoc" name="fornecedorDoc" accept=".pdf"><small>Anexe licenças, alvarás, etc.</small></div>
+                <div class="form-group full-width"><input type="submit" value="Salvar Fornecedor"></div>
+            </form>
+            <hr>
+            <h3>Fornecedores Cadastrados</h3>
+            <table id="tabela-fornecedores">
+                <thead><tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Documento</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card" id="pop-card" style="display: none;" data-perfil="admin,funcionario">
+            <h2>POP</h2>
+            <form id="popForm" style="margin-bottom: 30px;">
+                <input type="hidden" id="popId" name="popId">
+                <h3>Novo Procedimento / Editar Procedimento</h3>
+                <div class="form-group"><label for="popTitulo">Título:</label><input type="text" id="popTitulo" required></div>
+                <div class="form-group"><label for="popSetor">Setor Responsável:</label><input type="text" id="popSetor" list="setores-list" required><datalist id="setores-list"><option value="Qualidade"><option value="Logística"><option value="Produção"></datalist></div>
+                <div class="form-group full-width"><label for="popObjetivo">Objetivo:</label><textarea id="popObjetivo" rows="2" required></textarea></div>
+                <div class="form-group full-width"><label for="popConteudo">Conteúdo do Procedimento:</label><textarea id="popConteudo" rows="8" required></textarea></div>
+                <div class="form-group full-width" id="popAlteracao-group" style="display:none;"><label for="popAlteracao">Descrição da Alteração (Obrigatório ao editar):</label><input type="text" id="popAlteracao"></div>
+                <div class="form-group full-width"><input type="submit" value="Salvar POP"> <button type="button" id="cancelarEdicaoPop" class="button" style="display:none; background-color: #6c757d;">Cancelar Edição</button></div>
+            </form>
+            <hr>
+            <h3>POPs Cadastrados</h3>
+            <table id="tabela-pops">
+                <thead><tr><th>ID</th><th>Título</th><th>Setor</th><th>Versão</th><th>Última Alteração Por</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div class="card" id="relatorios-card" style="display: none;" data-perfil="admin">
+            <h2>Relatório por Responsável</h2>
+            <div class="form-group" style="max-width: 400px;">
+                <label for="filtro-responsavel">Selecione o Responsável:</label>
+                <select id="filtro-responsavel">
+                    <option value="">-- Todos --</option>
+                </select>
+            </div>
+            <div id="relatorio-conteudo" style="margin-top: 20px;">
+                <p>Selecione um responsável para ver suas atividades.</p>
+            </div>
+        </div>
+        
+        </main>
+    <footer>
+        &copy; <span id="currentYear"></span> Sistema de Controle Integrado.
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
