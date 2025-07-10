@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle Integrado</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
@@ -41,7 +45,14 @@
              <h2>Novo Registro de Inspeção</h2>
             <form id="registroForm">
                  <div class="form-group"><label for="data">Data da Inspeção:</label><input type="date" id="data" name="data" required></div>
-                 <div class="form-group"><label for="produto">Produto:</label><input type="text" id="produto" name="produto" list="produtos-list" required><datalist id="produtos-list"><option value="Dipirona Gotas 20ml"></datalist></div>
+                 
+                 <div class="form-group">
+                    <label for="produtoCodigo">Código do Produto:</label>
+                    <input type="text" id="produtoCodigo" name="produtoCodigo" required>
+                    <span id="produtoDescricao" style="margin-top: 5px; color: #555;"></span>
+                    <input type="hidden" id="produto" name="produto">
+                 </div>
+
                  <div class="form-group"><label for="lote">Lote:</label><input type="text" id="lote" name="lote" required></div>
                  <div class="form-group"><label for="validade">Validade:</label><input type="date" id="validade" name="validade" required></div>
                  <div class="form-group"><label for="fornecedor">Fornecedor:</label><select id="fornecedor" name="fornecedor" required><option value="">Carregando...</option></select></div>
@@ -90,22 +101,34 @@
         </div>
         
         <div class="card" id="relatorios-card" style="display: none;" data-perfil="admin">
-            <h2>Relatório por Responsável</h2>
-            <div class="form-group" style="max-width: 400px;">
-                <label for="filtro-responsavel">Selecione o Responsável:</label>
-                <select id="filtro-responsavel">
-                    <option value="">-- Todos --</option>
-                </select>
-            </div>
+            <h2>Relatório Geral e Gráficos</h2>
+            <p style="color: var(--cor-texto-secundario);">Clique no botão para gerar um relatório de não conformidades, POPs e visualizar os gráficos.</p>
+            <button id="gerar-relatorio-btn" class="button">Gerar Relatório Completo</button>
+            
             <div id="relatorio-conteudo" style="margin-top: 20px;">
-                <p>Selecione um responsável para ver suas atividades.</p>
+            </div>
+
+            <div id="graficos-container" style="margin-top: 40px; display: none;">
+                <h3>Gráficos de Desempenho</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px;">
+                    <div>
+                        <h4>Inspeções por Status</h4>
+                        <canvas id="inspecoesChart"></canvas>
+                    </div>
+                    <div>
+                        <h4>POPs por Setor</h4>
+                        <canvas id="popsChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
         
-        </main>
+    </main>
     <footer>
         &copy; <span id="currentYear"></span> Sistema de Controle Integrado.
     </footer>
+    
+    <script src="produtos.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

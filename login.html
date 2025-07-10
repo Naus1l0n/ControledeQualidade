@@ -4,69 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistema de Controle Integrado</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        body.login-body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: var(--cor-fundo);
-        }
-        .login-container {
-            padding: 40px;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-            border-top: 4px solid var(--cor-primaria);
-        }
-        .login-container h1 {
-            color: var(--cor-primaria);
-            margin-bottom: 25px;
-        }
-        .login-container .form-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-        .login-container input[type="text"],
-        .login-container input[type="password"] {
-            width: 100%;
-        }
-        .login-container input[type="submit"] {
-            width: 100%;
-            padding: 12px;
-        }
-        #login-error {
-            color: var(--cor-erro-texto);
-            background-color: var(--cor-erro-fundo);
-            border: 1px solid var(--cor-erro-borda);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 15px;
-            display: none;
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
 </head>
-<body class="login-body">
+<body class="login-page-body">
     <div class="login-container">
         <h1>Acesso ao Sistema</h1>
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Usuário:</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" required autocomplete="username">
             </div>
             <div class="form-group">
                 <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
             <div class="form-group">
                 <input type="submit" value="Entrar">
             </div>
         </form>
-        <div id="login-error">Usuário ou senha inválidos.</div>
+        <div id="login-error" style="display: none;" class="message error">Usuário ou senha inválidos.</div>
     </div>
     <script src="login.js"></script>
 </body>
