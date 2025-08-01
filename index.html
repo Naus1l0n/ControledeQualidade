@@ -9,6 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
+    </script>
 </head>
 <body>
     <header>
@@ -19,13 +24,32 @@
         </div>
     </header>
     <nav id="main-nav">
+        <a href="#pop-card" class="nav-link" data-perfil="admin,funcionario">POP</a>
         <a href="#resumo-card" class="nav-link active" data-perfil="admin,funcionario">Inspeções</a>
         <a href="#fornecedores-card" class="nav-link" data-perfil="admin">Fornecedores</a>
-        <a href="#pop-card" class="nav-link" data-perfil="admin,funcionario">POP</a>
+        <a href="#trello-board" class="nav-link" data-perfil="admin,funcionario">Não Conformidades</a>
+        <a href="#inventario-card" class="nav-link" data-perfil="admin">Inventário</a>
         <a href="#relatorios-card" class="nav-link" data-perfil="admin">Relatórios</a>
+        <a href="#nfe-graficos-card" class="nav-link" data-perfil="admin,funcionario">Notas Fiscais</a>
     </nav>
     <main>
+        <div id="sticky-message-container"></div>
+        
         <div id="message-area-notifications" style="display: none;"></div>
+
+        <div class="card" id="inventario-card" style="display: none;" data-perfil="admin">
+            <h2>Atualização de Estoque via PDF</h2>
+            <p style="color: var(--cor-texto-secundario); margin-bottom: 20px;">
+                Carregue o relatório de inventário em PDF para adicionar novos produtos ao sistema. O sistema irá comparar os códigos e adicionar apenas os que ainda não existem.
+            </p>
+            <div class="form-group">
+                <label for="pdf-upload">Selecione o arquivo PDF do inventário:</label>
+                <input type="file" id="pdf-upload" accept=".pdf">
+            </div>
+            <button id="processar-pdf-btn" class="button">Processar e Adicionar Novos Produtos</button>
+            <div id="pdf-process-status" style="margin-top: 15px;"></div>
+        </div>
+
 
         <div class="card" id="resumo-card" data-perfil="admin,funcionario">
             <h2>Resumo e Registros de Inspeções</h2>
@@ -35,15 +59,16 @@
                 <input type="text" id="filtro-tabela" placeholder="Digite para buscar...">
             </div>
             <table id="tabela-registros" aria-live="polite">
-                 <thead><tr><th>ID</th><th>Data Insp.</th><th>Produto</th><th>Lote</th><th>Validade</th><th>Fornecedor</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+                 <thead><tr><th>ID</th><th>Data Insp.</th><th>Produto</th><th>Lote</th><th>Validade</th><th>Fornecedor</th><th>Responsável</th><th>Status</th></tr></thead>
                 <tbody></tbody>
             </table>
             <button class="add-button" id="goto-add-inspection-btn" data-perfil="admin,funcionario">Nova Inspeção</button>
         </div>
 
         <div class="card" id="formulario-card" style="display: none;" data-perfil="admin,funcionario">
-             <h2>Novo Registro de Inspeção</h2>
+             <h2 id="form-inspecao-titulo">Novo Registro de Inspeção</h2>
             <form id="registroForm">
+                 <input type="hidden" id="inspecaoId">
                  <div class="form-group"><label for="data">Data da Inspeção:</label><input type="date" id="data" name="data" required></div>
                  
                  <div class="form-group">
@@ -55,29 +80,121 @@
 
                  <div class="form-group"><label for="lote">Lote:</label><input type="text" id="lote" name="lote" required></div>
                  <div class="form-group"><label for="validade">Validade:</label><input type="date" id="validade" name="validade" required></div>
-                 <div class="form-group"><label for="fornecedor">Fornecedor:</label><select id="fornecedor" name="fornecedor" required><option value="">Carregando...</option></select></div>
+                 
+                 <div class="form-group">
+                    <label for="fornecedorNomeInput">Nome do Fornecedor:</label>
+                    <input type="text" id="fornecedorNomeInput" name="fornecedorNomeInput" required autocomplete="off" placeholder="Comece a digitar o nome do fornecedor...">
+                    <span id="fornecedorNomeCompleto" style="margin-top: 5px; color: #555;"></span>
+                    <input type="hidden" id="fornecedor" name="fornecedor">
+                 </div>
+
                  <div class="form-group"><label for="responsavel">Responsável:</label><input type="text" id="responsavel" name="responsavel" required></div>
                  <div class="form-group"><label for="status">Status:</label><select id="status" name="status" required><option value="Conforme">Conforme</option><option value="Não Conforme">Não Conforme</option></select></div>
                  <div class="form-group full-width"><label for="observacoes">Observações:</label><textarea id="observacoes" name="observacoes" rows="3"></textarea></div>
-                 <div class="form-group full-width"><input type="submit" value="Salvar Inspeção"></div>
+                 <div class="form-actions">
+                    <input type="submit" value="Salvar Inspeção">
+                    <button type="button" id="cancel-inspection-btn" class="button cancel">Cancelar</button>
+                </div>
             </form>
         </div>
 
         <div class="card" id="fornecedores-card" style="display: none;" data-perfil="admin">
-            <h2>Cadastro de Fornecedores</h2>
-            <form id="fornecedorForm" style="margin-bottom: 30px;">
-                <h3>Novo Fornecedor</h3>
+            <h2>Fornecedores Cadastrados</h2>
+            <div class="form-group" style="max-width: 500px; margin: 20px 0;">
+                <label for="filtro-fornecedores">Buscar Fornecedores:</label>
+                <input type="text" id="filtro-fornecedores" placeholder="Digite para buscar...">
+            </div>
+            <table id="tabela-fornecedores">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Resp. Técnico</th>
+                        <th>Registro</th>
+                        <th>Alvará</th>
+                        <th>Validade Alvará</th>
+                        <th>Documento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button class="add-button" id="goto-add-fornecedor-btn" data-perfil="admin">Novo Fornecedor</button>
+        </div>
+
+        <!-- NOVO CARD PARA O FORMULÁRIO DE FORNECEDORES -->
+        <div class="card" id="formulario-fornecedor-card" style="display: none;" data-perfil="admin">
+            <h2 id="form-fornecedor-titulo">Novo Fornecedor</h2>
+            <form id="fornecedorForm">
+                <input type="hidden" id="fornecedorId" name="fornecedorId">
                 <div class="form-group"><label for="fornecedorNome">Nome:</label><input type="text" id="fornecedorNome" name="fornecedorNome" required></div>
                 <div class="form-group"><label for="fornecedorTipo">Tipo:</label><select id="fornecedorTipo" name="fornecedorTipo" required><option value="Fornecedor">Fornecedor</option><option value="Transportadora">Transportadora</option></select></div>
                 <div class="form-group full-width"><label for="fornecedorDoc">Documentos (PDF):</label><input type="file" id="fornecedorDoc" name="fornecedorDoc" accept=".pdf"><small>Anexe licenças, alvarás, etc.</small></div>
-                <div class="form-group full-width"><input type="submit" value="Salvar Fornecedor"></div>
+                
+                <h3 class="full-width" style="margin-top: 20px; border-top: 1px solid var(--cor-container-borda); padding-top: 20px;">Vigilância Sanitária</h3>
+                <div class="form-group">
+                    <label for="fornecedorAlvara">Alvará:</label>
+                    <input type="text" id="fornecedorAlvara" name="fornecedorAlvara">
+                </div>
+                <div class="form-group">
+                    <label for="fornecedorDataAlvara">Data Alvará:</label>
+                    <input type="date" id="fornecedorDataAlvara" name="fornecedorDataAlvara">
+                </div>
+                <div class="form-group full-width">
+                    <label for="fornecedorResponsavelTecnico">Responsável Técnico:</label>
+                    <input type="text" id="fornecedorResponsavelTecnico" name="fornecedorResponsavelTecnico">
+                </div>
+                <div class="form-group">
+                    <label for="fornecedorRegistro">Registro:</label>
+                    <input type="text" id="fornecedorRegistro" name="fornecedorRegistro">
+                </div>
+                <div class="form-group">
+                    <label for="fornecedorTipoRegistro">Tipo:</label>
+                    <select id="fornecedorTipoRegistro" name="fornecedorTipoRegistro">
+                        <option value="">Selecione</option>
+                        <option value="CRM">CRM</option>
+                        <option value="CRO">CRO</option>
+                        <option value="CRF">CRF</option>
+                        <option value="CRMV">CRMV</option>
+                        <option value="CRB">CRB</option>
+                        <option value="CREA">CREA</option>
+                        <option value="CRQ">CRQ</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <input type="submit" value="Salvar Fornecedor">
+                    <button type="button" id="cancelarEdicaoFornecedor" class="button cancel">Cancelar</button>
+                </div>
             </form>
-            <hr>
-            <h3>Fornecedores Cadastrados</h3>
-            <table id="tabela-fornecedores">
-                <thead><tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Documento</th><th>Ações</th></tr></thead>
-                <tbody></tbody>
-            </table>
+        </div>
+        <!-- FIM DO NOVO CARD PARA O FORMULÁRIO DE FORNECEDORES -->
+
+
+        <div class="card" id="nfe-graficos-card" style="display: none;" data-perfil="admin,funcionario">
+            <h2>Dashboard de Notas Fiscais</h2>
+            <p style="color: var(--cor-texto-secundario); margin-bottom: 20px;">
+                Carregue o relatório de vendas em PDF para gerar os gráficos de desempenho diário.
+            </p>
+            <div class="form-group">
+                <label for="nfe-pdf-upload-grafico">Selecione o arquivo PDF de Notas Fiscais:</label>
+                <input type="file" id="nfe-pdf-upload-grafico" accept=".pdf">
+            </div>
+            <button id="processar-nfe-pdf-grafico-btn" class="button">Gerar Gráficos</button>
+            <div id="nfe-pdf-process-status-grafico" style="margin-top: 15px;"></div>
+            
+            <div id="graficos-nfe-container" style="margin-top: 40px; display: none;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 20px;">
+                    <div>
+                        <h4>Nº de Notas por Valor Total do Dia</h4>
+                        <canvas id="valorNotasChart"></canvas>
+                    </div>
+                    <div>
+                        <h4>Nº de Notas Emitidas por Data</h4>
+                        <canvas id="volumeNotasChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card" id="pop-card" style="display: none;" data-perfil="admin,funcionario">
@@ -86,15 +203,26 @@
                 <input type="hidden" id="popId" name="popId">
                 <h3>Novo Procedimento / Editar Procedimento</h3>
                 <div class="form-group"><label for="popTitulo">Título:</label><input type="text" id="popTitulo" required></div>
-                <div class="form-group"><label for="popSetor">Setor Responsável:</label><input type="text" id="popSetor" list="setores-list" required><datalist id="setores-list"><option value="Qualidade"><option value="Logística"><option value="Produção"></datalist></div>
+                <div class="form-group"><label for="popSetor">Setor Responsável:</label><input type="text" id="popSetor" list="setores-list" required><datalist id="setores-list"><option value="Qualidade"></datalist></div>
                 <div class="form-group full-width"><label for="popObjetivo">Objetivo:</label><textarea id="popObjetivo" rows="2" required></textarea></div>
                 <div class="form-group full-width"><label for="popConteudo">Conteúdo do Procedimento:</label><textarea id="popConteudo" rows="8" required></textarea></div>
-                <div class="form-group full-width" id="popAlteracao-group" style="display:none;"><label for="popAlteracao">Descrição da Alteração (Obrigatório ao editar):</label><input type="text" id="popAlteracao"></div>
-                <div class="form-group full-width"><input type="submit" value="Salvar POP"> <button type="button" id="cancelarEdicaoPop" class="button" style="display:none; background-color: #6c757d;">Cancelar Edição</button></div>
+                <!-- CAMPO DE ALTERAÇÃO DO POP - VISÍVEL APENAS NA EDIÇÃO -->
+                <div class="form-group full-width" id="popAlteracao-group" style="display:none;">
+                    <label for="popAlteracao">Descrição da Alteração (Obrigatório ao editar):</label>
+                    <input type="text" id="popAlteracao">
+                </div>
+                <div class="form-actions">
+                    <input type="submit" value="Salvar POP">
+                    <button type="button" id="cancelarEdicaoPop" class="button cancel" style="display:none;">Cancelar Edição</button>
+                </div>
             </form>
             <hr>
             <h3>POPs Cadastrados</h3>
             <table id="tabela-pops">
+                <div class="form-group" style="max-width: 500px; margin: 20px 0;">
+                <label for="filtro-pop">Buscar POP:</label>
+                <input type="text" id="filtro-pop" placeholder="Digite para buscar por título ou setor...">
+            </div>
                 <thead><tr><th>ID</th><th>Título</th><th>Setor</th><th>Versão</th><th>Última Alteração Por</th><th>Ações</th></tr></thead>
                 <tbody></tbody>
             </table>
@@ -122,13 +250,76 @@
                 </div>
             </div>
         </div>
-        
+
+        <div class="card" id="trello-board" data-perfil="admin,funcionario" style="display: none;">
+            <h2>Quadro de Não Conformidades</h2>
+            <div id="kanban-board" class="kanban-board">
+                <div class="kanban-column">
+                    <h3 class="column-title">NÃO CONFORMIDADE</h3>
+                    <div class="card-list" data-column-id="nao-conformidade"></div>
+                    <button class="add-card-btn" data-perfil="admin,funcionario">+ Adicionar um cartão</button>
+                </div>
+                <div class="kanban-column">
+                    <h3 class="column-title">ENCAMINHADAS</h3>
+                    <div class="card-list" data-column-id="encaminhadas"></div>
+                </div>
+                <div class="kanban-column">
+                    <h3 class="column-title">TRATADAS</h3>
+                    <div class="card-list" data-column-id="tratadas"></div>
+                </div>
+                <div class="kanban-column">
+                    <h3 class="column-title">CONCLUÍDAS</h3>
+                    <div class="card-list" data-column-id="concluidas"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="nc-form-card" style="display: none;" data-perfil="admin,funcionario">
+            <h2>Nova Não Conformidade</h2>
+            <form id="ncForm">
+                <div class="form-group">
+                    <label for="nc-title">Título (Ex: Pedido, Produto ou Área):</label>
+                    <input type="text" id="nc-title" name="nc-title" required placeholder="N° do Pedido">
+                </div>
+                <div class="form-group">
+                    <label for="nc-label">Categoria da Etiqueta:</label>
+                    <select id="nc-label" name="nc-label" required>
+                        <option value="" disabled selected>Selecione uma categoria</option>
+                        <option value="ENTRADA">ENTRADA</option>
+                        <option value="FURO DE ESTOQUE">FURO DE ESTOQUE</option>
+                        <option value="RECLAMAÇÃO DE CLIENTE">RECLAMAÇÃO DE CLIENTE</option>
+                        <option value="QUANTITATIVO">QUANTITATIVO</option>
+                        <option value="MARCA">MARCA</option>
+                        <option value="LOTE">LOTE</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label for="nc-description">Descrição da Não Conformidade:</label>
+                    <textarea id="nc-description" name="nc-description" rows="4" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <input type="submit" value="Salvar e Criar Card">
+                    <button type="button" id="cancel-nc-btn" class="button cancel">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+
     </main>
     <footer>
         &copy; <span id="currentYear"></span> Sistema de Controle Integrado.
     </footer>
+
+    <div id="card-detail-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <button class="modal-close-btn">&times;</button>
+            <div id="modal-card-content">
+                </div>
+        </div>
+    </div>
     
     <script src="produtos.js"></script>
+    <script src="fornecedores.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

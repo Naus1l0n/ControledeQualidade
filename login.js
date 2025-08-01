@@ -2,33 +2,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     const errorDiv = document.getElementById('login-error');
 
-    // Lista de usuários, senhas e perfis.
-    // Em um sistema real, isso JAMAIS ficaria no código.
-    const usuarios = {
-        'ivano': { senha: '123', perfil: 'admin' },
-        'danieli': { senha: '123', perfil: 'admin' },
-        'otavio': { senha: '123', perfil: 'admin' },
-        'luiz': { senha: '123', perfil: 'funcionario' },
-        'gustavo': { senha: '123', perfil: 'funcionario' },
-        'thiago': { senha: '123', perfil: 'funcionario' },
-        'joao': { senha: '123', perfil: 'funcionario' }
-    };
-
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const username = document.getElementById('username').value.toLowerCase();
+        errorDiv.style.display = 'none'; // Oculta a mensagem de erro anterior
+
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        const usuario = usuarios[username];
+        try {
+            // Endereço do seu backend Flask
+            const response = await fetch('http://127.0.0.1:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+            });
 
-        if (usuario && usuario.senha === password) {
-            // Salva informações do usuário na sessão do navegador
-            sessionStorage.setItem('usuarioLogado', username);
-            sessionStorage.setItem('perfilUsuario', usuario.perfil);
+            const data = await response.json();
 
-            // Redireciona para a página principal
-            window.location.href = 'index.html';
-        } else {
+            if (response.ok && data.success) {
+                // Login bem-sucedido
+                // Salva informações do usuário na sessão do navegador
+                sessionStorage.setItem('usuarioLogado', data.username);
+                sessionStorage.setItem('perfilUsuario', data.perfil);
+
+                // Redireciona para a página principal
+                window.location.href = 'index.html';
+            } else {
+                // Exibe a mensagem de erro retornada pelo servidor
+                errorDiv.textContent = data.error || 'Usuário ou senha inválidos.';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            // Trata erros de conexão com o servidor
+            console.error('Erro ao tentar fazer login:', error);
+            errorDiv.textContent = 'Não foi possível conectar ao servidor. Tente novamente mais tarde.';
             errorDiv.style.display = 'block';
         }
     });
